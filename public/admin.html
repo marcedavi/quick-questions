@@ -1,0 +1,49 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+
+    <body class="bg-slate-50">
+
+        <div class="container-fluid flex flex-col justify-center items-center text-center mt-4">
+            <form id="form" action="/upload" method="POST" enctype="multipart/form-data" class="p-2 border border-slate-300 rounded-md flex flex-col justify-between items-center">
+                <input type="file" name="image" required />
+                <button type="submit" class="mt-4 w-full bg-blue-700 text-white px-4 py-2 rounded-md font-semibold text-lg">Inizia manche</button>
+            </form>
+
+            <div class="flex flex-col justify-between items-center">
+                <button id="endManche" type="button" class="mt-4 w-full bg-red-700 text-white px-4 py-2 rounded-md font-semibold text-lg">Termina manche</button>
+            </div>
+        </div>
+
+        
+    </body>
+
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script>
+        $(document).ready(() => {
+            const ws = new WebSocket("ws://localhost:7071")
+            ws.onmessage = (event) => {
+                let msg = JSON.parse(event.data)
+
+                switch(msg.action) {
+                    case 'login':
+                        login()
+                        break
+                    case 'login-error':
+                        loginError()
+                        break
+                }
+            };
+
+            $('#endManche').click(() => {
+                ws.send(JSON.stringify({
+                    action: 'endManche'
+                }))
+            })
+        })
+    </script>
+</html>

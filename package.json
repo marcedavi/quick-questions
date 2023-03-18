@@ -1,0 +1,24 @@
+{
+  "name": "quick-questions",
+  "version": "1.0.0",
+  "description": "Simple game made for an event hosted by a friend.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marcedavi/quick-questions.git"
+  },
+  "author": "Marcello Davi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/marcedavi/quick-questions/issues"
+  },
+  "homepage": "https://github.com/marcedavi/quick-questions#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "express-fileupload": "^1.4.0",
+    "ws": "^8.13.0"
+  }
+}

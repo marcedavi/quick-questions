@@ -1,0 +1,170 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+
+    <body class="bg-slate-50">
+        
+        <!-- Login -->
+        <div id="login" class="container-fluid h-screen flex flex-col justify-center items-center text-center px-12">
+            <div>
+                <p id="login-error" class="hidden text-red-700 mb-2">Nome o password sbagliati.</p>
+
+                <input id="username" type="text" placeholder="Nome" class="w-full px-3 py-2 rounded-md border border-slate-200"/>
+
+                <input id="password" type="password" placeholder="Password" class="w-full mt-2 px-3 py-2 rounded-md border border-slate-200"/>
+
+                <button id="login-button" class="mt-4 w-full bg-blue-700 text-white px-4 py-2 rounded-md font-semibold text-lg">Entra</button>
+            </div>
+        </div>
+
+        <!-- Wait -->
+        <div id="wait" class="container-fluid h-screen flex flex-col justify-center items-center text-center hidden">
+            <p id="wait-text" class="text-6xl"></p>
+        </div>
+
+        <!-- Countdown -->
+        <div id="countdown" class="container-fluid h-screen flex flex-col justify-center items-center text-center px-12 hidden">
+            <p id="count" class="text-9xl">3</p>
+        </div>
+
+        <!-- Game -->
+        <div id="game" class="container-fluid h-screen flex flex-col justify-between items-center hidden">
+            <div class="flex justify-center items-center h-1/2 px-2 py-2">
+                <img id="image" src="https://picsum.photos/1280/720" class="max-w-full max-h-full shadow-lg shadow-gray-400 rounded-md">
+            </div>
+            <div class="flex justify-center items-center h-1/2">
+                <button id="buzzer-button" class="bg-red-600 rounded-full text-white w-64 h-64 text-6xl font-extrabold shadow-lg shadow-gray-700">LA SO!</button>
+            </div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div id="leaderboard" class="container-fluid h-screen flex flex-col justify-center items-center hidden">
+            <table class="table-auto w-full text-center">
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>Tempo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+    </body>
+
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script>
+        $(document).ready(() => {
+            let username = ''
+            let alreadyBuzzed = false
+
+            const ws = new WebSocket("ws://localhost:7071")
+            ws.onmessage = (event) => {
+                let msg = JSON.parse(event.data)
+
+                switch(msg.action) {
+                    case 'login':
+                        login()
+                        break
+                    case 'login-error':
+                        loginError()
+                        break
+                    case 'manche':
+                        manche(msg.image)
+                        break
+                    case 'leaderboard':
+                        leaderboard(msg.players)
+                        break
+                }
+            };
+
+            $('#login-button').click(() => {
+                username = $('#username').val()
+                let password = $('#password').val()
+
+                ws.send(JSON.stringify({
+                    action: 'login',
+                    username: username,
+                    password: password
+                }))
+            })
+
+            $('#buzzer-button').click(() => {
+                if(alreadyBuzzed)
+                    return
+
+                ws.send(JSON.stringify({
+                    action: 'buzz',
+                    username: username
+                }))
+
+                alreadyBuzzed = true
+
+                $('#wait-text').text('Attendi il termine della manche')
+                setScreen('wait')
+            });
+
+            function login() {
+                $('#wait-text').text('Attendi l\'inizio della manche')
+                setScreen('wait')
+            }
+
+            function loginError() {
+                $('#login-error').removeClass('hidden')
+            }
+
+            function manche(image) {
+                setScreen('countdown')
+
+                $('#image').attr('src', image)
+
+                let count = 3
+                $('#count').text(count)
+
+                let interval = setInterval(() => {
+                    if (count === 1) {
+                        clearInterval(interval)
+                        alreadyBuzzed = false
+                        setScreen('game')
+                    }
+
+                    count -= 1
+                    $('#count').text(count)
+                }, 1000)
+               
+            }
+
+            function leaderboard(players) {
+                players.sort((a, b) => (a.time == 0 ? 9999 : a.time) - (b.time == 0 ? 9999 : b.time));
+
+                $('#leaderboard tbody').html('')
+                players.forEach(player => {
+                    $('#leaderboard tbody').append(`<tr class="odd:bg-slate-200"><td class="p-2">${player.username}</td><td>${player.time == 0 ? '-' : player.time} s</td>`)
+                });
+
+                setScreen('leaderboard')
+            }
+
+            function setScreen(id) {
+                if(!$('#login').hasClass('hidden'))
+                    $('#login').addClass('hidden')
+                if(!$('#wait').hasClass('hidden'))
+                    $('#wait').addClass('hidden')
+                if(!$('#countdown').hasClass('hidden'))
+                    $('#countdown').addClass('hidden')
+                if(!$('#game').hasClass('hidden'))
+                    $('#game').addClass('hidden')
+                if(!$('#leaderboard').hasClass('hidden'))
+                    $('#leaderboard').addClass('hidden')
+
+                $(`#${id}`).removeClass('hidden')
+            }
+
+        })
+    </script>
+</html>
