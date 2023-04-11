@@ -33,7 +33,7 @@
 
         <!-- Game -->
         <div id="game" class="container-fluid h-screen flex flex-col justify-between items-center hidden">
-            <div class="flex justify-center items-center h-1/2 px-2 py-2">
+            <div id="image-container" class="flex justify-center items-center h-1/2 px-2 py-2">
                 <img id="image" src="https://picsum.photos/1280/720" class="max-w-full max-h-full shadow-lg shadow-gray-400 rounded-md">
             </div>
             <div class="flex justify-center items-center h-1/2">
@@ -63,7 +63,7 @@
             let username = ''
             let alreadyBuzzed = false
 
-            const ws = new WebSocket("ws://192.168.10.210:7071")
+            const ws = new WebSocket("wss://nowchat.it:8443")
             ws.onmessage = (event) => {
                 let msg = JSON.parse(event.data)
 
@@ -121,6 +121,14 @@
             function manche(image) {
                 setScreen('countdown')
 
+                let imageContainer = $('#image-container')
+                if(!imageContainer.hasClass('hidden'))
+                    imageContainer.addClass('hidden')
+
+                if(image) {
+                    imageContainer.removeClass('hidden')
+                }
+
                 $('#image').attr('src', image)
 
                 let count = 3
@@ -144,6 +152,9 @@
 
                 $('#leaderboard tbody').html('')
                 players.forEach(player => {
+                    if(player.username === "regia")
+                        return
+                    
                     $('#leaderboard tbody').append(`<tr class="odd:bg-slate-200"><td class="p-2">${player.username}</td><td>${player.time == 0 ? '-' : player.time} s</td>`)
                 });
 

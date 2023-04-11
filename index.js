@@ -3,7 +3,7 @@ const fileUpload = require('express-fileupload')
 const path = require('path');
 const WebSocket = require('ws')
 
-const wss = new WebSocket.Server({ port: 7071 })
+const wss = new WebSocket.Server({ port: 8443 })
 
 const app = express()
 app.use(fileUpload())
@@ -30,11 +30,13 @@ app.listen(port, () => {
 app.post('/upload', (req, res) => {
     const { image } = req.files;
 
-    if (!image) return res.sendStatus(400);
 
-    image.mv(__dirname + '/public/upload/' + image.name);
-
-    manche('upload/' + image.name)
+    if(!image) {
+        image.mv(__dirname + '/public/upload/' + image.name);
+        manche('upload/' + image.name)
+    } else {
+        manche('')
+    }
 
     res.redirect('/admin')
 });
