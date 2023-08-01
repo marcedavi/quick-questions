@@ -1,16 +1,24 @@
+const fs = require('fs')
 const express = require('express')
 const fileUpload = require('express-fileupload')
 const path = require('path');
 const WebSocket = require('ws')
+const https = require('https')
 
-const wss = new WebSocket.Server({ port: 8443 })
+const server = new https.createServer({
+  cert: fs.readFileSync('/home/md/cert'),
+  key: fs.readFileSync('/home/md/key')
+});
+
+const wss = new WebSocket.Server({ server })
+server.listen(8443)
 
 const app = express()
 app.use(fileUpload())
 app.use(express.static('public'));
 
 const hostname = '127.0.0.1'
-const port = 3000
+const port = 80
 
 const players = new Map()
 let mancheStartTime = Date.now()
@@ -28,10 +36,8 @@ app.listen(port, () => {
 });
 
 app.post('/upload', (req, res) => {
-    const { image } = req.files;
-
-
-    if(!image) {
+    if(!req.files) {
+        const { image } = req.files;
         image.mv(__dirname + '/public/upload/' + image.name);
         manche('upload/' + image.name)
     } else {
